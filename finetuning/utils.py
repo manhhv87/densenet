@@ -2,7 +2,7 @@ import numpy as np
 import sklearn.model_selection
 import tensorflow as tf
 
-from transplant.modules.resnet1d import ResNet, BottleneckBlock
+from transplant.modules.densenet1d import DenseNet
 
 
 def ecg_feature_extractor(arch=None, stages=None):
@@ -10,25 +10,24 @@ def ecg_feature_extractor(arch=None, stages=None):
     # which we have observed to outperform the suggested smaller 3 × 3 filters.
     # See Table 1 in Deep Residual Learning for Image Recognition
     if arch is None or arch == 'resnet18':
-        resnet = ResNet(num_outputs=None,
-                        blocks=(2, 2, 2, 2)[:stages],
-                        kernel_size=(7, 5, 5, 3),
-                        include_top=False)  # not include fc layer
+        resnet = DenseNet(num_outputs=None,
+                          num_convs_in_dense_blocks=(4, 4, 4, 4)[:stages],
+                          growth_rate=(32, 32, 32, 32)[:stages],
+                          include_top=False)  # not include fc layer
     elif arch == 'resnet34':
-        resnet = ResNet(num_outputs=None,
-                        blocks=(3, 4, 6, 3)[:stages],
-                        kernel_size=(7, 5, 5, 3),
-                        include_top=False)  # not include fc layer
+        resnet = DenseNet(num_outputs=None,
+                          num_convs_in_dense_blocks=(4, 4, 4, 4)[:stages],
+                          growth_rate=(32, 32, 32, 32)[:stages],
+                          include_top=False)  # not include fc layer
     elif arch == 'resnet50':
-        resnet = ResNet(num_outputs=None,
-                        blocks=(3, 4, 6, 3)[:stages],
-                        kernel_size=(7, 5, 5, 3),
-                        block_fn=BottleneckBlock,
-                        include_top=False)  # not include fc layer
+        resnet = DenseNet(num_outputs=None,
+                          num_convs_in_dense_blocks=(4, 4, 4, 4)[:stages],
+                          growth_rate=(32, 32, 32, 32)[:stages],
+                          include_top=False)  # not include fc layer
     else:
         raise ValueError('unknown architecture: {}'.format(arch))
 
-    feature_extractor = tf.keras.Sequential([resnet, tf.keras.layers.GlobalAveragePooling1D()])   # not fc layer
+    feature_extractor = tf.keras.Sequential([resnet, tf.keras.layers.GlobalAveragePooling1D()])  # not fc layer
     return feature_extractor
 
 

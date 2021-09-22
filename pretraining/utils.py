@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from finetuning.utils import ecg_feature_extractor
 from transplant.datasets import icentia11k
-from transplant.modules.resnet1d import ResidualBlock, BottleneckBlock
+from transplant.modules.densenet1d import ResidualBlock, BottleneckBlock
 from transplant.modules.transformer import Encoder
 from transplant.modules.utils import build_input_tensor_from_shape
 from transplant.tasks.cpc import CPCSolver
