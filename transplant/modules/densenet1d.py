@@ -63,7 +63,7 @@ class TransitionBlock(tf.keras.layers.Layer):
         self.bn = batch_norm()
         self.relu = relu()
         self.conv = conv1d(self.num_channels, kernel_size=1)
-        self.avg_pool = tf.keras.layers.AvgPool2D(pool_size=2, strides=2)
+        self.avg_pool = tf.keras.layers.AvgPool1D(pool_size=2, strides=2)
         super().build(input_shape)
 
     def call(self, x, **kwargs):
@@ -85,7 +85,7 @@ class DenseNet(tf.keras.Model):
         self.conv1 = conv1d(filters=64, kernel_size=7, strides=2)  # 7×7, 64, stride 2
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
-        self.maxpool1 = tf.keras.layers.MaxPool2D(pool_size=3, strides=2, padding='same')  # 3×3 max pool, stride 2
+        self.maxpool1 = tf.keras.layers.MaxPool1D(pool_size=3, strides=2, padding='same')  # 3×3 max pool, stride 2
 
         # Built Dense Blocks and Transition layers
         self.blocks = []
@@ -110,7 +110,7 @@ class DenseNet(tf.keras.Model):
         self.include_top = include_top
         if include_top:
             # average pool, 1-d fc, sigmoid
-            self.global_pool = tf.keras.layers.GlobalAveragePooling2D()
+            self.global_pool = tf.keras.layers.GlobalAveragePooling1D()
             out_act = 'sigmoid' if num_outputs == 1 else 'softmax'
             self.classifier = tf.keras.layers.Dense(num_outputs, out_act)
 
