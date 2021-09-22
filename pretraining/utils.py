@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from finetuning.utils import ecg_feature_extractor
 from transplant.datasets import icentia11k
-from transplant.modules.densenet1d import ResidualBlock, BottleneckBlock
+# from transplant.modules.densenet1d import ResidualBlock, BottleneckBlock
 from transplant.modules.transformer import Encoder
 from transplant.modules.utils import build_input_tensor_from_shape
 from transplant.tasks.cpc import CPCSolver
@@ -32,14 +32,14 @@ def unzip_icentia11k(db_dir, patient_ids, out_dir, num_workers=1, patients_per_w
 
 def task_solver(task, arch='resnet18', stages=None, return_feature_extractor=False):
     feature_extractor = ecg_feature_extractor(arch=arch, stages=stages)
-    last_residual_block = feature_extractor.layers[0].layers[-1]
-
-    if isinstance(last_residual_block, ResidualBlock):
-        d_model = last_residual_block.filters
-    elif isinstance(last_residual_block, BottleneckBlock):
-        d_model = last_residual_block.filters * last_residual_block.expansion
-    else:
-        raise ValueError('Feature extractor is not a residual network')
+    # last_residual_block = feature_extractor.layers[0].layers[-1]
+    #
+    # if isinstance(last_residual_block, ResidualBlock):
+    #     d_model = last_residual_block.filters
+    # elif isinstance(last_residual_block, BottleneckBlock):
+    #     d_model = last_residual_block.filters * last_residual_block.expansion
+    # else:
+    #     raise ValueError('Feature extractor is not a residual network')
 
     if task == 'rhythm':
         num_classes = len(icentia11k.ds_rhythm_names)
@@ -53,9 +53,9 @@ def task_solver(task, arch='resnet18', stages=None, return_feature_extractor=Fal
         num_classes = len(icentia11k.ds_hr_names)
         model = tf.keras.Sequential([feature_extractor,
                                      tf.keras.layers.Dense(num_classes)])
-    elif task == 'cpc':
-        model = CPCSolver(signal_embedding=feature_extractor,
-                          transformer=Encoder(num_layers=3, d_model=d_model, num_heads=8, dff=2 * d_model, dropout=0.))
+    # elif task == 'cpc':
+    #     model = CPCSolver(signal_embedding=feature_extractor,
+    #                       transformer=Encoder(num_layers=3, d_model=d_model, num_heads=8, dff=2 * d_model, dropout=0.))
     else:
         raise ValueError('unknown task: {}'.format(task))
 
