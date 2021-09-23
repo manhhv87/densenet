@@ -7,10 +7,9 @@ from tqdm import tqdm
 
 from finetuning.utils import ecg_feature_extractor
 from transplant.datasets import icentia11k
-# from transplant.modules.densenet1d import ResidualBlock, BottleneckBlock
-from transplant.modules.transformer import Encoder
+# from transplant.modules.transformer import Encoder
 from transplant.modules.utils import build_input_tensor_from_shape
-from transplant.tasks.cpc import CPCSolver
+# from transplant.tasks.cpc import CPCSolver
 
 
 def unzip_icentia11k(db_dir, patient_ids, out_dir, num_workers=1, patients_per_worker=1, verbose=False):
