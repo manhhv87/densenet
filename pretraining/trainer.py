@@ -26,11 +26,11 @@ def _create_dataset_from_generator(patient_ids, samples_per_patient=None):
     elif args.task == 'hr':
         dataset = datasets.heart_rate_dataset(db_dir=str(args.train), patient_ids=patient_ids, frame_size=args.frame_size,
                                               unzipped=args.unzipped, samples_per_patient=samples_per_patient)
-    elif args.task == 'cpc':
-        dataset = datasets.cpc_dataset(db_dir=str(args.train), patient_ids=patient_ids, frame_size=args.frame_size,
-                                       context_size=args.context_size, ns=args.ns, context_overlap=args.context_overlap,
-                                       positive_offset=args.positive_offset, num_buffered_patients=16,
-                                       unzipped=args.unzipped, samples_per_patient=samples_per_patient)
+    # elif args.task == 'cpc':
+    #     dataset = datasets.cpc_dataset(db_dir=str(args.train), patient_ids=patient_ids, frame_size=args.frame_size,
+    #                                    context_size=args.context_size, ns=args.ns, context_overlap=args.context_overlap,
+    #                                    positive_offset=args.positive_offset, num_buffered_patients=16,
+    #                                    unzipped=args.unzipped, samples_per_patient=samples_per_patient)
     else:
         raise ValueError('unknown task: {}'.format(args.task))
     return dataset
@@ -42,12 +42,13 @@ def _create_dataset_from_data(data):
     if args.task in ['rhythm', 'beat', 'hr']:
         spec = (tf.TensorSpec((None, args.frame_size, 1), tf.float32),
                 tf.TensorSpec((None,), tf.int32))
-    elif args.task == 'cpc':
-        spec = ({'context': tf.TensorSpec((None, args.context_size, args.frame_size, 1), tf.float32),
-                 'samples': tf.TensorSpec((None, args.ns + 1, args.frame_size, 1), tf.float32)},
-                tf.TensorSpec((None,), tf.int32))
+    # elif args.task == 'cpc':
+    #     spec = ({'context': tf.TensorSpec((None, args.context_size, args.frame_size, 1), tf.float32),
+    #              'samples': tf.TensorSpec((None, args.ns + 1, args.frame_size, 1), tf.float32)},
+    #             tf.TensorSpec((None,), tf.int32))
     else:
         raise ValueError('unknown task: {}'.format(args.task))
+
     if not matches_spec((x, y), spec, ignore_batch_dim=True):
         raise ValueError('data does not match the required spec: {}'.format(spec))
 
@@ -58,7 +59,7 @@ def _create_dataset_from_data(data):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--job-dir', type=Path, required=True, help='Job output directory.')
-    parser.add_argument('--task', required=True, help='Training task: `rhythm`, `beat`, `hr`, `cpc`.')
+    parser.add_argument('--task', required=True, help='Training task: `rhythm`, `beat`, `hr`.')
     parser.add_argument('--train', type=Path, required=True, help='Path to the train directory or a pickled file.')
     parser.add_argument('--val-file', type=Path, help='Path to the pickled validation file.\nOverrides --val-size.')
     parser.add_argument('--cache-val', type=Path, help='Path to where the newly created validation set will be cached.')
@@ -71,14 +72,14 @@ if __name__ == '__main__':
                         help='Size of the validation set when collecting data from train directory.')
     parser.add_argument('--arch', default='resnet18', help='Architecture of the ECG feature extractor: '
                                                            '`resnet18`, `resnet34` or `resnet50`.')
-    parser.add_argument('--stages', type=int, default=None, help='Stages of the residual network '
+    parser.add_argument('--stages', type=int, default=None, help='Stages of the densenet network '
                                                                  'that will be pretrained.')
     parser.add_argument('--frame-size', type=int, default=2048, help='Frame size.')
-    parser.add_argument('--context-size', type=int, default=8, help='Context size measured in frames.')
-    parser.add_argument('--ns', type=int, default=1, help='Number of negative samples for the CPC.')
-    parser.add_argument('--positive-offset', type=int, default=0,
-                        help='Offset of the positive sample from the context.')
-    parser.add_argument('--context-overlap', type=int, default=0, help='CPC Context overlap.')
+    # parser.add_argument('--context-size', type=int, default=8, help='Context size measured in frames.')
+    # parser.add_argument('--ns', type=int, default=1, help='Number of negative samples for the CPC.')
+    # parser.add_argument('--positive-offset', type=int, default=0,
+    #                     help='Offset of the positive sample from the context.')
+    # parser.add_argument('--context-overlap', type=int, default=0, help='CPC Context overlap.')
     parser.add_argument('--batch-size', type=int, default=32, help='Batch size.')
     parser.add_argument('--samples-per-patient', type=int, default=1000,
                         help='Number of data points that are sampled from a patient file once it is read.')
@@ -129,19 +130,19 @@ if __name__ == '__main__':
             train_mask = np.isin(element=train['patient_ids'], test_elements=val['patient_ids'], invert=True)
             train = {key: array[train_mask] for key, array in train.items()}    # create dictionaries
         elif args.val_patients:     # if validation dataset is number of patients
-            if args.task == 'cpc':
-                print('--val-patients is ignored when train is a pickled file because the negative samples '
-                      'in the validation set cannot be guaranteed to come from only the validation patients.')
-            else:
-                print('Splitting data into train and validation')
-                _, val_patients_ids = sklearn.model_selection.train_test_split(np.unique(train['patient_ids']),
-                                                                               test_size=args.val_patients)     # _ is test_patients_ids
-                # remove training examples of patients who belong to the validation set
-                val_mask = np.isin(train['patient_ids'], val_patients_ids)
-                val = {key: array[val_mask] for key, array in train.items()}    # create dictionaries
-                validation_data = _create_dataset_from_data(val)    # create validation dataset
-                train_mask = ~val_mask
-                train = {key: array[train_mask] for key, array in train.items()}
+            # if args.task == 'cpc':
+            #     print('--val-patients is ignored when train is a pickled file because the negative samples '
+            #           'in the validation set cannot be guaranteed to come from only the validation patients.')
+            # else:
+            print('Splitting data into train and validation')
+            _, val_patients_ids = sklearn.model_selection.train_test_split(np.unique(train['patient_ids']),
+                                                                           test_size=args.val_patients)     # _ is test_patients_ids
+            # remove training examples of patients who belong to the validation set
+            val_mask = np.isin(train['patient_ids'], val_patients_ids)
+            val = {key: array[val_mask] for key, array in train.items()}    # create dictionaries
+            validation_data = _create_dataset_from_data(val)    # create validation dataset
+            train_mask = ~val_mask
+            train = {key: array[train_mask] for key, array in train.items()}
         train_size = len(train['y'])
         steps_per_epoch = None
         train_data = _create_dataset_from_data(train).shuffle(train_size)   # creat train dataset

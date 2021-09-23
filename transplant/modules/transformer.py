@@ -77,34 +77,34 @@ class EncoderLayer(tf.keras.layers.Layer):
         return x
 
 
-class Encoder(tf.keras.layers.Layer):
-    def __init__(self, num_layers=6, d_model=512, num_heads=8, dff=2048,
-                 max_seq_len=512, dropout=0.1, **kwargs):
-        super().__init__(**kwargs)
-        self.d_model = d_model
-        self.pos_embedding = positional_embedding(max_seq_len, d_model)
-        self.dropout = tf.keras.layers.Dropout(dropout)
-        self.enc_layers = [EncoderLayer(d_model, num_heads, dff, dropout)
-                           for _ in range(num_layers)]
-
-    def call(self, x, training=None, mask=None):
-        """
-        @param x: (batch_size, seq_len, d_model)
-        @param training: training mode
-        @param mask: (batch_size, seq_len)
-        @return: (batch_size, seq_len, d_model)
-        """
-        if mask is not None:
-            # add extra dimensions to add the padding to the attention logits
-            mask = mask[:, None, None, :]
-        _, seq_len, d_model = x.shape
-        dk = tf.cast(self.d_model, tf.float32)
-        x *= tf.sqrt(dk)
-        x += self.pos_embedding[None, :seq_len]  # add batch dimension
-        x = self.dropout(x, training=training)
-        for enc_layer in self.enc_layers:
-            x = enc_layer(x, training=training, mask=mask)
-        return x
+# class Encoder(tf.keras.layers.Layer):
+#     def __init__(self, num_layers=6, d_model=512, num_heads=8, dff=2048,
+#                  max_seq_len=512, dropout=0.1, **kwargs):
+#         super().__init__(**kwargs)
+#         self.d_model = d_model
+#         self.pos_embedding = positional_embedding(max_seq_len, d_model)
+#         self.dropout = tf.keras.layers.Dropout(dropout)
+#         self.enc_layers = [EncoderLayer(d_model, num_heads, dff, dropout)
+#                            for _ in range(num_layers)]
+#
+#     def call(self, x, training=None, mask=None):
+#         """
+#         @param x: (batch_size, seq_len, d_model)
+#         @param training: training mode
+#         @param mask: (batch_size, seq_len)
+#         @return: (batch_size, seq_len, d_model)
+#         """
+#         if mask is not None:
+#             # add extra dimensions to add the padding to the attention logits
+#             mask = mask[:, None, None, :]
+#         _, seq_len, d_model = x.shape
+#         dk = tf.cast(self.d_model, tf.float32)
+#         x *= tf.sqrt(dk)
+#         x += self.pos_embedding[None, :seq_len]  # add batch dimension
+#         x = self.dropout(x, training=training)
+#         for enc_layer in self.enc_layers:
+#             x = enc_layer(x, training=training, mask=mask)
+#         return x
 
 
 def positional_embedding(size, d_model):
