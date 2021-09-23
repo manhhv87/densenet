@@ -158,29 +158,29 @@ def heart_rate_data_generator(patient_generator, frame_size=2048, label_frame_si
             yield x, y
 
 
-def signal_generator(patient_generator, frame_size=2048, samples_per_patient=1):
-    """
-    Generate a stream of short signals. These short signals are uniformly sampled
-    from the segments in patient data by placing a frame in a random location within one of the segments.
-
-    @param patient_generator: Generator that yields a tuple of patient id and patient data at each iteration.
-            Patient data may contain only signals, since labels are not used.
-    @param frame_size: Size of the frame that contains a short signal.
-    @param samples_per_patient: Number of samples from one patient before new patient is pulled from the generator.
-            This is done in order to decrease the number of i/o operations.
-
-    @return: Generator of: input data of shape (frame_size, 1)
-    """
-    for _, (signal, _) in patient_generator:
-        num_segments, segment_size = signal.shape
-        for _ in range(samples_per_patient):
-            # randomly choose a frame that lies within the segment i.e. no zero-padding is necessary
-            segment_index = np.random.randint(num_segments)
-            frame_start = np.random.randint(segment_size - frame_size)
-            frame_end = frame_start + frame_size
-            x = signal[segment_index, frame_start:frame_end]
-            x = np.expand_dims(x, axis=1)  # add channel dimension
-            yield x
+# def signal_generator(patient_generator, frame_size=2048, samples_per_patient=1):
+#     """
+#     Generate a stream of short signals. These short signals are uniformly sampled
+#     from the segments in patient data by placing a frame in a random location within one of the segments.
+#
+#     @param patient_generator: Generator that yields a tuple of patient id and patient data at each iteration.
+#             Patient data may contain only signals, since labels are not used.
+#     @param frame_size: Size of the frame that contains a short signal.
+#     @param samples_per_patient: Number of samples from one patient before new patient is pulled from the generator.
+#             This is done in order to decrease the number of i/o operations.
+#
+#     @return: Generator of: input data of shape (frame_size, 1)
+#     """
+#     for _, (signal, _) in patient_generator:
+#         num_segments, segment_size = signal.shape
+#         for _ in range(samples_per_patient):
+#             # randomly choose a frame that lies within the segment i.e. no zero-padding is necessary
+#             segment_index = np.random.randint(num_segments)
+#             frame_start = np.random.randint(segment_size - frame_size)
+#             frame_end = frame_start + frame_size
+#             x = signal[segment_index, frame_start:frame_end]
+#             x = np.expand_dims(x, axis=1)  # add channel dimension
+#             yield x
 
 
 # def cpc_data_generator(buffered_patient_generator, context_size, ns, frame_size=2048, context_overlap=0,
